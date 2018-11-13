@@ -13,6 +13,7 @@ from sklearn.linear_model import LassoCV
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import PolynomialFeatures
 
 if __name__ == "__main__":
     __spec__=None
@@ -47,15 +48,19 @@ if __name__ == "__main__":
     ytest = ytest_raw
     #ytest = y_scaler.transform(ytest_raw.values.reshape((-1,1)))
     
+
+    poly = PolynomialFeatures(degree=2)
+    Xtrain = poly.fit_transform(Xtrain)
+    Xtest = poly.transform(Xtest)
     
-    model = ElasticNet(max_iter=10000)
+    model = ElasticNet()
     #modle = LassoCV()
     
-    params = {'alpha': np.logspace(-2,2,3),
-              'l1_ratio': np.linspace(0,1,3)}
+    params = {'alpha': np.logspace(-3,3,15),
+              'l1_ratio': np.linspace(0,1,8)}
     
     grid = GridSearchCV(estimator=model, cv=5, param_grid=params, return_train_score=False,
-                        n_jobs=4)
+                        n_jobs=4, refit=True)
     
     grid.fit(Xtrain, ytrain)
     ypred = grid.predict(Xtest)
@@ -65,5 +70,6 @@ if __name__ == "__main__":
     result = np.sqrt(mean_squared_error(ytest,ypred))
     
     #one hot stuff
+    print(grid.best_estimator_)
     #
     print(result)
